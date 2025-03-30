@@ -1,9 +1,20 @@
+:root {
+  --oracle-red: #C74634;
+  --oracle-red-dark: #A23A2A;
+  --oracle-red-light: #E57B6F;
+  --oracle-gray: #312D2A;
+  --oracle-light-gray: #F8F8F8;
+  --oracle-white: #FFFFFF;
+  --oracle-black: #000000;
+  --oracle-accent: #3A3632;
+}
+
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
   padding: 20px;
   margin: 0;
-  background-color: #f8f9fa;
-  color: #333;
+  background-color: var(--oracle-light-gray);
+  color: var(--oracle-gray);
   max-width: 800px;
   margin: 0 auto;
 }
@@ -15,14 +26,14 @@ body {
 }
 
 h1 {
-  color: #0066cc;
+  color: var(--oracle-red);
   margin-top: 0;
   border-bottom: 1px solid #ddd;
   padding-bottom: 10px;
 }
 
 .card {
-  background-color: white;
+  background-color: var(--oracle-white);
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -48,34 +59,34 @@ input[type="url"] {
 }
 
 button {
-  background-color: #0066cc;
-  color: white;
+  background-color: var(--oracle-red);
+  color: var(--oracle-white);
   border: none;
   padding: 10px 15px;
   border-radius: 4px;
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  font-size: 14px;
 }
 
 button:hover {
-  background-color: #0052a3;
+  background-color: var(--oracle-red-dark);
 }
 
 .status {
-  margin-top: 15px;
   padding: 10px;
   border-radius: 4px;
+  margin-top: 15px;
 }
 
 .success {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: var(--oracle-light-gray);
+  color: var(--oracle-gray);
+  border-left: 4px solid var(--oracle-red);
 }
 
 .error {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: var(--oracle-red-light);
+  color: var(--oracle-white);
 }
 
 .hidden {
@@ -83,8 +94,8 @@ button:hover {
 }
 
 .info-box {
-  background-color: #e6f7ff;
-  border-left: 4px solid #1890ff;
+  background-color: var(--oracle-light-gray);
+  border-left: 4px solid var(--oracle-red);
   padding: 15px;
   margin-top: 20px;
   border-radius: 4px;
@@ -92,7 +103,7 @@ button:hover {
 
 .info-box h3 {
   margin-top: 0;
-  color: #1890ff;
+  color: var(--oracle-red);
 }
 
 .info-box ul {

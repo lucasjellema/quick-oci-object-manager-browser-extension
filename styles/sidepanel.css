@@ -1,9 +1,20 @@
+:root {
+  --oracle-red: #C74634;
+  --oracle-red-dark: #A23A2A;
+  --oracle-red-light: #E57B6F;
+  --oracle-gray: #312D2A;
+  --oracle-light-gray: #F8F8F8;
+  --oracle-white: #FFFFFF;
+  --oracle-black: #000000;
+  --oracle-accent: #3A3632;
+}
+
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
   padding: 20px;
   margin: 0;
-  background-color: #f8f9fa;
-  color: #333;
+  background-color: var(--oracle-light-gray);
+  color: var(--oracle-gray);
 }
 
 .container {
@@ -13,18 +24,18 @@ body {
 }
 
 h2 {
-  color: #0066cc;
+  color: var(--oracle-red);
   margin-top: 0;
 }
 
 h3 {
   margin-top: 0;
   margin-bottom: 10px;
-  color: #0066cc;
+  color: var(--oracle-red);
 }
 
 .card {
-  background-color: white;
+  background-color: var(--oracle-white);
   border-radius: 8px;
   padding: 15px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -54,8 +65,8 @@ label {
 }
 
 button {
-  background-color: #0066cc;
-  color: white;
+  background-color: var(--oracle-red);
+  color: var(--oracle-white);
   border: none;
   padding: 10px 15px;
   border-radius: 4px;
@@ -65,11 +76,11 @@ button {
 }
 
 button:hover {
-  background-color: #0052a3;
+  background-color: var(--oracle-red-dark);
 }
 
 button:disabled {
-  background-color: #cccccc;
+  background-color: var(--oracle-gray);
   cursor: not-allowed;
 }
 
@@ -84,7 +95,7 @@ button:disabled {
   overflow-y: auto;
   border: 1px solid #ddd;
   border-radius: 4px;
-  background-color: #f5f5f5;
+  background-color: var(--oracle-white);
 }
 
 .browser-item {
@@ -96,7 +107,7 @@ button:disabled {
 }
 
 .browser-item:hover {
-  background-color: #e9ecef;
+  background-color: var(--oracle-light-gray);
 }
 
 .browser-item:last-child {
@@ -105,15 +116,15 @@ button:disabled {
 
 .browser-item .icon {
   margin-right: 10px;
-  color: #0066cc;
+  color: var(--oracle-red);
 }
 
 .browser-item .folder-icon {
-  color: #ffc107;
+  color: var(--oracle-accent);
 }
 
 .browser-item .file-icon {
-  color: #6c757d;
+  color: var(--oracle-gray);
 }
 
 .browser-item .item-name {
@@ -134,25 +145,25 @@ button:disabled {
   padding: 2px 5px;
   font-size: 12px;
   background-color: transparent;
-  color: #6c757d;
+  color: var(--oracle-gray);
   border: 1px solid #ddd;
 }
 
 .browser-item .item-actions button:hover {
-  background-color: #f8f9fa;
-  color: #0066cc;
+  background-color: var(--oracle-light-gray);
+  color: var(--oracle-red);
 }
 
 .browser-item.error-item {
-  color: #721c24;
-  background-color: #f8d7da;
-  border-color: #f5c6cb;
+  color: var(--oracle-red);
+  background-color: var(--oracle-light-gray);
+  border-color: var(--oracle-gray);
   padding: 10px;
 }
 
 .path-navigator {
   padding: 8px 10px;
-  background-color: #e9ecef;
+  background-color: var(--oracle-light-gray);
   border-radius: 4px;
   margin-bottom: 10px;
   font-weight: 500;
@@ -162,7 +173,7 @@ button:disabled {
 
 .path-navigator .path-segment {
   cursor: pointer;
-  color: #0066cc;
+  color: var(--oracle-red);
 }
 
 .path-navigator .path-segment:hover {
@@ -171,7 +182,7 @@ button:disabled {
 
 .path-navigator .path-separator {
   margin: 0 5px;
-  color: #6c757d;
+  color: var(--oracle-gray);
 }
 
 .selected-files {
@@ -181,7 +192,7 @@ button:disabled {
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 10px;
-  background-color: #f5f5f5;
+  background-color: var(--oracle-white);
 }
 
 .file-item {
@@ -198,7 +209,7 @@ button:disabled {
 .upload-destination {
   margin: 15px 0;
   padding: 8px 10px;
-  background-color: #e9ecef;
+  background-color: var(--oracle-light-gray);
   border-radius: 4px;
   font-size: 14px;
   display: flex;
@@ -221,7 +232,7 @@ button:disabled {
 }
 
 #showFolderDropdown {
-  background-color: #f8f9fa;
+  background-color: var(--oracle-white);
   border: 1px solid #ced4da;
   border-left: none;
   border-radius: 0 4px 4px 0;
@@ -230,7 +241,7 @@ button:disabled {
 }
 
 #showFolderDropdown:hover {
-  background-color: #e9ecef;
+  background-color: var(--oracle-light-gray);
 }
 
 .folder-dropdown {
@@ -240,7 +251,7 @@ button:disabled {
   right: 0;
   max-height: 200px;
   overflow-y: auto;
-  background-color: white;
+  background-color: var(--oracle-white);
   border: 1px solid #ced4da;
   border-radius: 4px;
   z-index: 10;
@@ -254,7 +265,7 @@ button:disabled {
 }
 
 .folder-item:hover {
-  background-color: #f8f9fa;
+  background-color: var(--oracle-light-gray);
 }
 
 .upload-destination select {
@@ -273,7 +284,7 @@ button:disabled {
 
 .download-file {
   background-color: transparent;
-  color: #0066cc;
+  color: var(--oracle-red);
   border: none;
   padding: 2px 5px;
   cursor: pointer;
@@ -281,7 +292,7 @@ button:disabled {
 }
 
 .download-file:hover {
-  color: #0052a3;
+  color: var(--oracle-red-dark);
 }
 
 .status {
@@ -291,13 +302,13 @@ button:disabled {
 }
 
 .success {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: var(--oracle-light-gray);
+  color: var(--oracle-gray);
 }
 
 .error {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: var(--oracle-red);
+  color: var(--oracle-white);
 }
 
 .hidden {
@@ -307,14 +318,14 @@ button:disabled {
 .progress-container {
   width: 100%;
   height: 20px;
-  background-color: #f5f5f5;
+  background-color: var(--oracle-light-gray);
   border-radius: 4px;
   margin-top: 10px;
 }
 
 .progress-bar {
   height: 100%;
-  background-color: #0066cc;
+  background-color: var(--oracle-red);
   border-radius: 4px;
   width: 0%;
   transition: width 0.3s;
@@ -323,7 +334,7 @@ button:disabled {
 .settings-link {
   display: inline-block;
   margin-top: 10px;
-  color: #0066cc;
+  color: var(--oracle-red);
   text-decoration: none;
   font-size: 14px;
 }
@@ -333,8 +344,8 @@ button:disabled {
 }
 
 .info-message {
-  background-color: #e6f7ff;
-  border-left: 4px solid #1890ff;
+  background-color: var(--oracle-light-gray);
+  border-left: 4px solid var(--oracle-red);
   padding: 10px;
   margin-bottom: 15px;
   border-radius: 0 4px 4px 0;
@@ -360,7 +371,7 @@ button:disabled {
 
 .spinner {
   border: 3px solid #f3f3f3;
-  border-top: 3px solid #0066cc;
+  border-top: 3px solid var(--oracle-red);
   border-radius: 50%;
   width: 20px;
   height: 20px;
@@ -388,7 +399,7 @@ button:disabled {
 }
 
 .modal-content {
-  background-color: white;
+  background-color: var(--oracle-white);
   border-radius: 8px;
   width: 80%;
   max-width: 400px;
@@ -410,11 +421,11 @@ button:disabled {
 .close-button {
   font-size: 24px;
   cursor: pointer;
-  color: #6c757d;
+  color: var(--oracle-gray);
 }
 
 .close-button:hover {
-  color: #0066cc;
+  color: var(--oracle-red);
 }
 
 .modal-body {
