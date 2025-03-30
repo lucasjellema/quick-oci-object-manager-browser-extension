@@ -13,8 +13,9 @@
       <div class="form-group">
         <label for="parUrl">OCI Pre-Authenticated Request URL:</label>
         <input type="url" id="parUrl" placeholder="https://objectstorage.region.oraclecloud.com/p/...">
-        <p>This URL will be used to upload files to OCI Object Storage.</p>
+        <p>This URL will be used for all operations with OCI Object Storage (uploading, listing, and managing files/folders).</p>
       </div>
+      
       <button id="saveSettings">Save Settings</button>
       <div class="status hidden" id="statusMessage"></div>
     </div>
@@ -22,17 +23,24 @@
     <div class="info-box">
       <h3>About Pre-Authenticated Requests (PARs)</h3>
       <p>A Pre-Authenticated Request (PAR) is a way to provide temporary access to objects in OCI Object Storage without requiring users to have IAM policies.</p>
-      <p>To create a PAR for this extension:</p>
+      <p>For full functionality of this extension, your PAR should have the following permissions:</p>
+      <ul>
+        <li><strong>Object Read</strong>: For listing and viewing files</li>
+        <li><strong>Object Write</strong>: For uploading files and creating folders</li>
+        <li><strong>Object Delete</strong>: For deleting files and folders</li>
+      </ul>
+      <p>To create a PAR with these permissions:</p>
       <ol>
         <li>Log in to the OCI Console</li>
         <li>Navigate to Object Storage > Buckets</li>
         <li>Select your bucket</li>
         <li>Click "Pre-Authenticated Requests" in the left sidebar</li>
         <li>Click "Create Pre-Authenticated Request"</li>
-        <li>Configure the PAR with appropriate permissions (Object Write for uploads)</li>
+        <li>Set "Access Type" to "Permit all operations on this bucket"</li>
+        <li>Set an appropriate expiration time</li>
+        <li>Click "Create Pre-Authenticated Request"</li>
         <li>Copy the generated URL and paste it in the field above</li>
       </ol>
-      <p><strong>Note:</strong> Make sure your PAR has write permissions to allow file uploads.</p>
     </div>
   </div>
   

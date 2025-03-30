@@ -4,19 +4,70 @@
   <title>Quick OCI Object Manager</title>
   <meta charset="utf-8">
   <link rel="stylesheet" href="styles/sidepanel.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
   <div class="container">
     <h2>Quick OCI Object Manager</h2>
     
+    <!-- Browser Section -->
     <div class="card">
+      <div class="card-header">
+        <h3>Bucket Browser</h3>
+        <div class="browser-actions">
+          <button id="refreshButton" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+          <button id="createFolderButton" title="Create Folder"><i class="fas fa-folder-plus"></i></button>
+        </div>
+      </div>
+      
+      <div class="browser-container">
+        <div class="path-navigator">
+          <span id="currentPath">/</span>
+        </div>
+        
+        <div id="browserMessage" class="info-message hidden">
+          Bucket browsing requires a List PAR URL. Configure it in the 
+          <a href="#" id="openOptionsLink" class="settings-link">extension options</a>.
+        </div>
+        
+        <div id="loadingIndicator" class="loading-indicator hidden" style="display: none !important;">
+          <div class="spinner"></div>
+          <span>Loading...</span>
+        </div>
+        
+        <div id="fileList" class="file-browser">
+          <!-- File and folder items will be added here dynamically -->
+        </div>
+      </div>
+    </div>
+    
+    <!-- Upload Section -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Upload Files</h3>
+      </div>
+      
       <div class="form-group">
         <label for="fileUpload">Select Files to Upload:</label>
         <input type="file" id="fileUpload" multiple>
       </div>
-      <div class="file-list" id="fileList">
+      
+      <div class="selected-files" id="selectedFilesList">
         <div class="file-item">No files selected</div>
       </div>
+      
+      <div class="upload-destination">
+        <span>Upload to: </span>
+        <div class="folder-select-container">
+          <input type="text" id="folderInput" placeholder="Enter or select folder path">
+          <button id="showFolderDropdown" title="Show folder list"><i class="fas fa-caret-down"></i></button>
+          <div id="folderDropdown" class="folder-dropdown hidden">
+            <div class="folder-item" data-path="/">Root</div>
+            <!-- Additional folders will be populated dynamically -->
+          </div>
+        </div>
+      </div>
+      
       <button id="uploadButton" disabled>Upload to OCI</button>
       
       <div class="progress-container hidden" id="progressContainer">
@@ -27,7 +78,28 @@
       
       <div class="info-message hidden" id="parMissingMessage">
         No PAR URL configured. Please set up your OCI Pre-Authenticated Request URL in the 
-        <a href="#" id="openOptionsLink" class="settings-link">extension options</a>.
+        <a href="#" id="openOptionsLink2" class="settings-link">extension options</a>.
+      </div>
+      <div class="status-message error hidden" id="folderPathError">Please enter a valid folder path (e.g., folder or parent/child)</div>
+    </div>
+  </div>
+  
+  <!-- Modal for creating new folders -->
+  <div id="folderModal" class="modal hidden" style="display: none !important;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Create New Folder</h3>
+        <span class="close-button" id="closeModal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="folderName">Folder Name:</label>
+          <input type="text" id="folderName" placeholder="Enter folder name">
+        </div>
+        <div class="modal-actions">
+          <button id="createFolderConfirm">Create</button>
+          <button id="cancelFolderCreate">Cancel</button>
+        </div>
       </div>
     </div>
   </div>

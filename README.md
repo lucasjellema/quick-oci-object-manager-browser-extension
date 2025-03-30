@@ -1,10 +1,14 @@
 # Quick OCI Object Manager
 
-A Chrome browser extension that allows users to upload files to Oracle Cloud Infrastructure (OCI) Object Storage using a Pre-Authenticated Request (PAR).
+A Chrome browser extension that allows users to browse, upload, and download files in Oracle Cloud Infrastructure (OCI) Object Storage using a Pre-Authenticated Request (PAR).
 
 ## Features
 
-- Side panel interface for file uploads to OCI Object Storage
+- Side panel interface for browsing and managing OCI Object Storage contents
+- File browser with folder navigation and hierarchical structure
+- Upload files to root or specific folders
+- Download files directly from the browser interface
+- Folder creation and management
 - Support for uploading multiple files simultaneously
 - Progress tracking for file uploads
 - Configuration through Chrome's extension options page
@@ -13,9 +17,11 @@ A Chrome browser extension that allows users to upload files to Oracle Cloud Inf
 ## How It Works
 
 1. The extension uses a Pre-Authenticated Request (PAR) URL to authenticate with OCI Object Storage
-2. Users can select one or more files from their local file system
-3. Files are uploaded directly to the specified OCI bucket using the PAR
-4. Upload progress is displayed in real-time
+2. Users can browse their OCI bucket contents with folder navigation
+3. Files can be uploaded to the root or any folder in the bucket
+4. Files can be downloaded by clicking on them in the browser
+5. New folders can be created and managed within the interface
+6. Upload progress is displayed in real-time
 
 ## Installation
 
@@ -47,11 +53,25 @@ A Chrome browser extension that allows users to upload files to Oracle Cloud Inf
    - Right-click the extension icon and select "Options"
    - Enter your PAR URL and click "Save Settings"
 
-3. Select files to upload using the file picker in the side panel
+3. Browse your bucket contents:
+   - Navigate through folders by clicking on them
+   - Return to parent folders using the ".." navigation
+   - Refresh the current view using the refresh button
 
-4. Click "Upload to OCI" to start the upload process
+4. Upload files:
+   - Select files to upload using the file picker
+   - Choose a destination folder or enter a custom folder path
+   - Click "Upload to OCI" to start the upload process
+   - Monitor the progress and status of your uploads
 
-5. Monitor the progress and status of your uploads
+5. Download files:
+   - Click on any file in the browser to download it
+   - Or use the download button next to each file
+
+6. Create folders:
+   - Click the "Create Folder" button
+   - Enter a folder name in the dialog
+   - Click "Create" to create the folder
 
 ## About Pre-Authenticated Requests (PARs)
 
@@ -62,7 +82,7 @@ A Pre-Authenticated Request (PAR) is a way to provide temporary access to object
 3. Select your bucket
 4. Click "Pre-Authenticated Requests" in the left sidebar
 5. Click "Create Pre-Authenticated Request"
-6. Configure the PAR with appropriate permissions (Object Write for uploads)
+6. Configure the PAR with appropriate permissions (Object Read/Write for full functionality)
 7. Copy the generated URL and use it in the extension options
 
 ## Project Structure
