@@ -26,6 +26,8 @@ A Chrome browser extension that allows users to browse, upload, and download fil
 6. Images and files from web pages can be uploaded directly via context menu
 7. Upload progress and success notifications are displayed in real-time
 
+For a detailed visualization of the extension's architecture and component interactions, see the [Architecture Document](architecture.md).
+
 ## Installation
 
 ### From Source
