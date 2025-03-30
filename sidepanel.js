@@ -117,8 +117,16 @@ document.addEventListener('DOMContentLoaded', function() {
       if (folderItem) {
         const path = folderItem.getAttribute('data-path');
         if (path && folderInput) {
-          folderInput.value = path;
+          // For display purposes, show path without leading slash (except for root)
+          const displayPath = path === '/' ? '' : 
+                            (path.startsWith('/') ? path.substring(1) : path);
+          // Remove trailing slash if present
+          const cleanPath = displayPath.endsWith('/') ? displayPath.slice(0, -1) : displayPath;
+          folderInput.value = cleanPath;
           folderDropdown.classList.add('hidden');
+          
+          // Update the current folder in storage for context menu uploads
+          updateCurrentFolder(cleanPath);
         }
       }
     });
@@ -215,6 +223,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Hide any previous error message
     document.getElementById('folderPathError').classList.add('hidden');
+    
+    // Update the current folder in storage for context menu uploads
+    updateCurrentFolder(selectedPath);
     
     // Get PAR URL from storage
     chrome.storage.sync.get(['parUrl'], function(result) {
@@ -537,6 +548,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Remove trailing slash if present
             const cleanInputPath = displayInputPath.endsWith('/') ? displayInputPath.slice(0, -1) : displayInputPath;
             folderInput.value = cleanInputPath;
+            
+            // Update the current folder in storage for context menu uploads
+            updateCurrentFolder(cleanInputPath);
           }
           
           // Store the bucket contents
@@ -956,4 +970,49 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
   }
+  
+  // Helper function to update the current folder in storage for context menu uploads
+  function updateCurrentFolder(folderPath) {
+    chrome.storage.sync.set({ currentFolder: folderPath });
+  }
+  
+  // Listen for messages from the background script
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'uploadComplete') {
+      // Show a notification about the upload
+      const filename = message.filename;
+      const folder = message.folder;
+      
+      // Show a success message
+      showStatus(`File "${filename}" uploaded successfully via context menu`, 'success');
+      
+      // Check if we're currently in the folder where the file was uploaded
+      const currentFolderPath = currentPath === '/' ? '' : 
+                               (currentPath.startsWith('/') ? currentPath.substring(1) : currentPath);
+      const cleanCurrentFolder = currentFolderPath.endsWith('/') ? 
+                                currentFolderPath.slice(0, -1) : currentFolderPath;
+                              
+      if (cleanCurrentFolder === folder) {
+        // Reload the current folder to show the new file
+        loadBucketContents(currentPath);
+        
+        // Add a class to highlight the new file when it appears
+        setTimeout(() => {
+          const fileItems = document.querySelectorAll('.browser-item');
+          fileItems.forEach(item => {
+            const itemName = item.querySelector('.item-name');
+            if (itemName && itemName.textContent === filename) {
+              // Add highlight class
+              item.classList.add('highlight-new-file');
+              
+              // Remove highlight after 3 seconds
+              setTimeout(() => {
+                item.classList.remove('highlight-new-file');
+              }, 3000);
+            }
+          });
+        }, 500); // Small delay to ensure the folder has loaded
+      }
+    }
+  });
 });

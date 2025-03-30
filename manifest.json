@@ -5,7 +5,11 @@
   "description": "Upload files to OCI Object Storage using a Pre-Authenticated Request (PAR)",
   "permissions": [
     "storage",
-    "sidePanel"
+    "sidePanel",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "side_panel": {
     "default_path": "sidepanel.html"
@@ -26,5 +30,11 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-script.js"]
+    }
+  ],
   "options_page": "options.html"
 }

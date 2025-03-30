@@ -10,9 +10,11 @@ A Chrome browser extension that allows users to browse, upload, and download fil
 - Download files directly from the browser interface
 - Folder creation and management
 - Support for uploading multiple files simultaneously
+- Context menu integration for uploading images and files from web pages
+- Oracle-themed red color scheme for a professional appearance
 - Progress tracking for file uploads
 - Configuration through Chrome's extension options page
-- No content script required - operates independently of web page content
+- Real-time notifications and visual feedback
 
 ## How It Works
 
@@ -21,7 +23,8 @@ A Chrome browser extension that allows users to browse, upload, and download fil
 3. Files can be uploaded to the root or any folder in the bucket
 4. Files can be downloaded by clicking on them in the browser
 5. New folders can be created and managed within the interface
-6. Upload progress is displayed in real-time
+6. Images and files from web pages can be uploaded directly via context menu
+7. Upload progress and success notifications are displayed in real-time
 
 ## Installation
 
@@ -72,6 +75,12 @@ A Chrome browser extension that allows users to browse, upload, and download fil
    - Click the "Create Folder" button
    - Enter a folder name in the dialog
    - Click "Create" to create the folder
+
+7. Upload web content via context menu:
+   - Right-click on any image on a web page and select "Upload Image to OCI Bucket"
+   - Right-click on any file link (PDF, JSON, etc.) and select "Upload File to OCI Bucket"
+   - The file will be uploaded to your currently selected folder
+   - If the sidepanel is open, you'll see a notification and the file will be highlighted
 
 ## About Pre-Authenticated Requests (PARs)
 

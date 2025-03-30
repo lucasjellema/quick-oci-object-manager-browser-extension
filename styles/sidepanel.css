@@ -384,6 +384,18 @@ button:disabled {
   100% { transform: rotate(360deg); }
 }
 
+/* Highlight for newly uploaded files */
+@keyframes highlight-pulse {
+  0% { background-color: var(--oracle-light-gray); }
+  50% { background-color: var(--oracle-red-light); }
+  100% { background-color: var(--oracle-light-gray); }
+}
+
+.highlight-new-file {
+  animation: highlight-pulse 1s ease-in-out 3;
+  border-left: 3px solid var(--oracle-red);
+}
+
 /* Modal styles */
 .modal {
   position: fixed;
