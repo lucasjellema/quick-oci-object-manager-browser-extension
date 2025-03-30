@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Quick OCI Object Manager Options</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="styles/options.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Quick OCI Object Manager Options</h1>
+    
+    <div class="card">
+      <div class="form-group">
+        <label for="parUrl">OCI Pre-Authenticated Request URL:</label>
+        <input type="url" id="parUrl" placeholder="https://objectstorage.region.oraclecloud.com/p/...">
+        <p>This URL will be used to upload files to OCI Object Storage.</p>
+      </div>
+      <button id="saveSettings">Save Settings</button>
+      <div class="status hidden" id="statusMessage"></div>
+    </div>
+    
+    <div class="info-box">
+      <h3>About Pre-Authenticated Requests (PARs)</h3>
+      <p>A Pre-Authenticated Request (PAR) is a way to provide temporary access to objects in OCI Object Storage without requiring users to have IAM policies.</p>
+      <p>To create a PAR for this extension:</p>
+      <ol>
+        <li>Log in to the OCI Console</li>
+        <li>Navigate to Object Storage > Buckets</li>
+        <li>Select your bucket</li>
+        <li>Click "Pre-Authenticated Requests" in the left sidebar</li>
+        <li>Click "Create Pre-Authenticated Request"</li>
+        <li>Configure the PAR with appropriate permissions (Object Write for uploads)</li>
+        <li>Copy the generated URL and paste it in the field above</li>
+      </ol>
+      <p><strong>Note:</strong> Make sure your PAR has write permissions to allow file uploads.</p>
+    </div>
+  </div>
+  
+  <script src="options.js"></script>
+</body>
+</html>

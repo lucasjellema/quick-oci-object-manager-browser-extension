@@ -1,0 +1,100 @@
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  padding: 20px;
+  margin: 0;
+  background-color: #f8f9fa;
+  color: #333;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+h1 {
+  color: #0066cc;
+  margin-top: 0;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+input[type="url"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+button {
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #0052a3;
+}
+
+.status {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.hidden {
+  display: none;
+}
+
+.info-box {
+  background-color: #e6f7ff;
+  border-left: 4px solid #1890ff;
+  padding: 15px;
+  margin-top: 20px;
+  border-radius: 4px;
+}
+
+.info-box h3 {
+  margin-top: 0;
+  color: #1890ff;
+}
+
+.info-box ul {
+  margin-bottom: 0;
+}

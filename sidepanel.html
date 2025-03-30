@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Quick OCI Object Manager</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="styles/sidepanel.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Quick OCI Object Manager</h2>
+    
+    <div class="card">
+      <div class="form-group">
+        <label for="fileUpload">Select Files to Upload:</label>
+        <input type="file" id="fileUpload" multiple>
+      </div>
+      <div class="file-list" id="fileList">
+        <div class="file-item">No files selected</div>
+      </div>
+      <button id="uploadButton" disabled>Upload to OCI</button>
+      
+      <div class="progress-container hidden" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      
+      <div class="status hidden" id="statusMessage"></div>
+      
+      <div class="info-message hidden" id="parMissingMessage">
+        No PAR URL configured. Please set up your OCI Pre-Authenticated Request URL in the 
+        <a href="#" id="openOptionsLink" class="settings-link">extension options</a>.
+      </div>
+    </div>
+  </div>
+  
+  <script src="sidepanel.js"></script>
+</body>
+</html>
