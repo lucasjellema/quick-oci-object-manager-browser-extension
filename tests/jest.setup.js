@@ -1,43 +1,63 @@
 // Jest setup file
 
 // Mock Chrome API
-const chromeMock = {
+global.chrome = {
   storage: {
     sync: {
       get: jest.fn((keys, callback) => {
         const result = {};
         if (typeof keys === 'string') {
-          result[keys] = chromeMock.storage.sync.data[keys] || null;
+          result[keys] = global.chrome.storage.sync.data[keys] || null;
         } else if (Array.isArray(keys)) {
           keys.forEach(key => {
-            result[key] = chromeMock.storage.sync.data[key] || null;
+            result[key] = global.chrome.storage.sync.data[key] || null;
           });
         } else if (typeof keys === 'object') {
           Object.keys(keys).forEach(key => {
-            result[key] = chromeMock.storage.sync.data[key] || keys[key];
+            result[key] = global.chrome.storage.sync.data[key] || keys[key];
           });
         } else {
-          Object.assign(result, chromeMock.storage.sync.data);
+          Object.assign(result, global.chrome.storage.sync.data);
         }
         callback(result);
       }),
-      set: jest.fn((items, callback) => {
-        Object.assign(chromeMock.storage.sync.data, items);
+      set: jest.fn((data, callback) => {
+        Object.assign(global.chrome.storage.sync.data, data);
         if (callback) callback();
       }),
-      data: {
-        parUrl: 'https://objectstorage.example.com/p/mock-par-token/n/namespace/b/bucket/o/'
-      }
+      data: {}
+    },
+    local: {
+      get: jest.fn((keys, callback) => {
+        const result = {};
+        if (typeof keys === 'string') {
+          result[keys] = global.chrome.storage.local.data[keys] || null;
+        } else if (Array.isArray(keys)) {
+          keys.forEach(key => {
+            result[key] = global.chrome.storage.local.data[key] || null;
+          });
+        } else if (typeof keys === 'object') {
+          Object.keys(keys).forEach(key => {
+            result[key] = global.chrome.storage.local.data[key] || keys[key];
+          });
+        } else {
+          Object.assign(result, global.chrome.storage.local.data);
+        }
+        callback(result);
+      }),
+      set: jest.fn((data, callback) => {
+        Object.assign(global.chrome.storage.local.data, data);
+        if (callback) callback();
+      }),
+      data: {}
     }
   },
   runtime: {
-    getURL: jest.fn(path => `chrome-extension://mock-extension-id/${path}`)
+    lastError: null
   }
 };
 
-global.chrome = chromeMock;
-
-// Mock fetch API
+// Mock fetch
 global.fetch = jest.fn(() => 
   Promise.resolve({
     ok: true,
@@ -48,12 +68,26 @@ global.fetch = jest.fn(() =>
 );
 
 // Mock DOM elements that might not be in jsdom
-document.body.innerHTML = `
-<div id="statusMessage" class="status"></div>
+global.document.body.innerHTML = `
+<div id="status" style="display: none;"></div>
 <div id="fileList"></div>
-<div id="currentPath"></div>
-<div id="loadingIndicator"></div>
+<div id="breadcrumbs"></div>
+<button id="showDeletedFilesBtn">Show Deleted Files</button>
+<button id="hideDeletedFilesBtn" style="display: none;">Hide Deleted Files</button>
 `;
+
+// Mock FileReader
+global.FileReader = function() {
+  this.readAsArrayBuffer = jest.fn(file => {
+    setTimeout(() => {
+      if (this.onload) {
+        this.onload({ target: { result: new ArrayBuffer(file.size || 100) } });
+      }
+    }, 0);
+  });
+  this.result = null;
+  this.onload = null;
+};
 
 // Mock console methods to avoid cluttering test output
 global.console = {

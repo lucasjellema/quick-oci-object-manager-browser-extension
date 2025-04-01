@@ -1,14 +1,13 @@
 /**
- * Mock implementation of deletion-manager module for testing
+ * Mock implementation of the deletion manager module
  */
 
-// Constants
-const DELETED_FILES_INDEX = 'logically-deleted-files.json';
-
-// State for deleted files
+// Mock deleted files index
 let deletedFilesIndex = {
   deletedFiles: []
 };
+
+// Flag for showing deleted files
 let showingDeletedFiles = false;
 
 /**
@@ -29,31 +28,71 @@ function isShowingDeletedFiles() {
 }
 
 /**
- * Loads the deleted files index from the bucket
- * @param {string} [parUrl] - Optional PAR URL, if not provided it will be fetched from storage
+ * Loads the deleted files index from the server
+ * @param {string} parUrl - The PAR URL
  * @returns {Promise<Object>} The deleted files index
  */
 async function loadDeletedFilesIndex(parUrl) {
   try {
-    // Mock loading the index
-    return deletedFilesIndex;
+    const indexUrl = `${parUrl}/logically-deleted-files.json`;
+    const response = await fetch(indexUrl);
+    
+    if (response.ok) {
+      deletedFilesIndex = await response.json();
+      return deletedFilesIndex;
+    } else if (response.status === 404) {
+      // Create a new index if it doesn't exist
+      deletedFilesIndex = { deletedFiles: [] };
+      await saveDeletedFilesIndex(parUrl, deletedFilesIndex);
+      return deletedFilesIndex;
+    } else {
+      throw new Error(`Failed to load deleted files index: ${response.status}`);
+    }
   } catch (error) {
-    return { deletedFiles: [] };
+    console.error('Error loading deleted files index:', error);
+    deletedFilesIndex = { deletedFiles: [] };
+    return deletedFilesIndex;
   }
 }
 
 /**
- * Saves the deleted files index to the bucket
- * @param {string} [parUrl] - Optional PAR URL, if not provided it will be fetched from storage
+ * Saves the deleted files index to the server
+ * @param {string} parUrl - The PAR URL
+ * @param {Object} index - The deleted files index to save
  * @returns {Promise<boolean>} Whether the save was successful
  */
-async function saveDeletedFilesIndex(parUrl) {
+async function saveDeletedFilesIndex(parUrl, index) {
   try {
-    // Mock saving the index
-    return true;
+    const indexUrl = `${parUrl}/logically-deleted-files.json`;
+    const response = await fetch(indexUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(index)
+    });
+    
+    if (response.ok) {
+      deletedFilesIndex = index;
+      return true;
+    } else {
+      throw new Error(`Failed to save deleted files index: ${response.status}`);
+    }
   } catch (error) {
+    console.error('Error saving deleted files index:', error);
     return false;
   }
+}
+
+/**
+ * Normalizes a file path
+ * @param {string} path - The path to normalize
+ * @returns {string} The normalized path
+ */
+function normalizePath(path) {
+  if (!path) return '';
+  // Remove leading slash if present
+  return path.startsWith('/') ? path.substring(1) : path;
 }
 
 /**
@@ -62,96 +101,98 @@ async function saveDeletedFilesIndex(parUrl) {
  * @returns {boolean} Whether the file is deleted
  */
 function isFileDeleted(filename) {
-  if (!deletedFilesIndex || !deletedFilesIndex.deletedFiles || deletedFilesIndex.deletedFiles.length === 0) {
-    return false;
-  }
+  if (!filename) return false;
   
-  // Handle null or undefined filename
-  if (!filename) {
-    return false;
-  }
-  
-  // Normalize the filename (remove any leading slash)
-  const normalizedFilename = filename.startsWith('/') ? filename.substring(1) : filename;
-  
-  // Check if the file is in the deleted files index
+  const normalizedFilename = normalizePath(filename);
   return deletedFilesIndex.deletedFiles.some(deletedFile => {
-    const normalizedDeletedFilename = deletedFile.startsWith('/') ? deletedFile.substring(1) : deletedFile;
-    return normalizedFilename === normalizedDeletedFilename;
+    const normalizedDeletedFile = normalizePath(deletedFile);
+    return normalizedDeletedFile === normalizedFilename;
   });
 }
 
 /**
- * Creates a map of deleted files for faster lookups
- * @returns {Map<string, boolean>} Map with filenames as keys
+ * Creates a map of deleted files for faster lookup
+ * @returns {Map<string, boolean>} Map of deleted files
  */
 function createDeletedFilesMap() {
-  const deletedFilesMap = new Map();
+  const map = new Map();
   
-  if (deletedFilesIndex && deletedFilesIndex.deletedFiles && deletedFilesIndex.deletedFiles.length > 0) {
-    deletedFilesIndex.deletedFiles.forEach(filename => {
-      const normalizedFilename = filename.startsWith('/') ? filename.substring(1) : filename;
-      deletedFilesMap.set(normalizedFilename, true);
+  if (deletedFilesIndex && deletedFilesIndex.deletedFiles) {
+    deletedFilesIndex.deletedFiles.forEach(file => {
+      map.set(normalizePath(file), true);
     });
   }
   
-  return deletedFilesMap;
+  return map;
 }
 
 /**
- * Deletes a file (logical deletion)
- * @param {string} filename - The file to delete
- * @param {string} [parUrl] - Optional PAR URL, if not provided it will be fetched from storage
+ * Deletes a file by adding it to the deleted files index
+ * @param {string} parUrl - The PAR URL
+ * @param {string} filename - The filename to delete
  * @returns {Promise<boolean>} Whether the deletion was successful
  */
-async function deleteFile(filename, parUrl) {
+async function deleteFile(parUrl, filename) {
   try {
-    // Normalize the filename
-    const normalizedFilename = filename.startsWith('/') ? filename.substring(1) : filename;
-    
-    // Add the file to the deleted files index if it's not already there
-    if (!isFileDeleted(normalizedFilename)) {
-      deletedFilesIndex.deletedFiles.push(normalizedFilename);
-      return true;
-    } else {
+    if (!confirm(`Are you sure you want to delete ${filename}?`)) {
       return false;
     }
+    
+    // Add the file to the index if it's not already there
+    const normalizedFilename = normalizePath(filename);
+    if (!isFileDeleted(normalizedFilename)) {
+      deletedFilesIndex.deletedFiles.push(normalizedFilename);
+      
+      // Save the updated index
+      const success = await saveDeletedFilesIndex(parUrl, deletedFilesIndex);
+      
+      if (success) {
+        console.log(`File ${filename} marked as deleted`);
+        return true;
+      }
+    }
+    
+    return false;
   } catch (error) {
+    console.error('Error deleting file:', error);
     return false;
   }
 }
 
 /**
- * Restores a deleted file
- * @param {string} filename - The file to restore
- * @param {string} [parUrl] - Optional PAR URL, if not provided it will be fetched from storage
+ * Restores a file by removing it from the deleted files index
+ * @param {string} parUrl - The PAR URL
+ * @param {string} filename - The filename to restore
  * @returns {Promise<boolean>} Whether the restoration was successful
  */
-async function restoreFile(filename, parUrl) {
+async function restoreFile(parUrl, filename) {
   try {
-    // Normalize the filename
-    const normalizedFilename = filename.startsWith('/') ? filename.substring(1) : filename;
+    // Remove the file from the index
+    const normalizedFilename = normalizePath(filename);
+    const index = deletedFilesIndex.deletedFiles.findIndex(
+      deletedFile => normalizePath(deletedFile) === normalizedFilename
+    );
     
-    // Remove the file from the deleted files index
-    if (isFileDeleted(normalizedFilename)) {
-      deletedFilesIndex.deletedFiles = deletedFilesIndex.deletedFiles.filter(deletedFile => {
-        const normalizedDeletedFilename = deletedFile.startsWith('/') ? deletedFile.substring(1) : deletedFile;
-        return normalizedFilename !== normalizedDeletedFilename;
-      });
-      return true;
-    } else {
-      return false;
+    if (index !== -1) {
+      deletedFilesIndex.deletedFiles.splice(index, 1);
+      
+      // Save the updated index
+      const success = await saveDeletedFilesIndex(parUrl, deletedFilesIndex);
+      
+      if (success) {
+        console.log(`File ${filename} restored`);
+        return true;
+      }
     }
+    
+    return false;
   } catch (error) {
+    console.error('Error restoring file:', error);
     return false;
   }
 }
 
-// For testing purposes
-function _setDeletedFilesIndex(index) {
-  deletedFilesIndex = index;
-}
-
+// Export the functions
 module.exports = {
   toggleDeletedFilesVisibility,
   isShowingDeletedFiles,
@@ -161,5 +202,6 @@ module.exports = {
   createDeletedFilesMap,
   deleteFile,
   restoreFile,
-  _setDeletedFilesIndex
+  // Export the deletedFilesIndex for testing
+  deletedFilesIndex
 };

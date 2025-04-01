@@ -77,35 +77,36 @@ In addition to end-to-end tests, this project includes unit tests for critical c
 
 ### Running Unit Tests
 
-```bash
-# Run all unit tests
-npm run test:unit
+All tests should be run from the `tests` directory of the project.
 
-# Run specific unit test files
-npx jest unit-tests/system-files.test.js
-npx jest unit-tests/deleted-files.test.js
-npx jest unit-tests/deletion-operations.test.js
-npx jest unit-tests/ui-components.test.js
+```bash
+# Run all tests (both CommonJS and ES modules)
+node --experimental-vm-modules node_modules/jest/bin/jest.js
+
+# Run all ES module tests
+node --experimental-vm-modules node_modules/jest/bin/jest.js "unit-tests/.*\.mjs$"
+
+# Run specific ES module test files
+node --experimental-vm-modules node_modules/jest/bin/jest.js unit-tests/utils.test.mjs
+node --experimental-vm-modules node_modules/jest/bin/jest.js unit-tests/file-operations.test.mjs
+node --experimental-vm-modules node_modules/jest/bin/jest.js unit-tests/storage.test.mjs
+node --experimental-vm-modules node_modules/jest/bin/jest.js unit-tests/deletion-manager.test.mjs
+node --experimental-vm-modules node_modules/jest/bin/jest.js unit-tests/file-operations-import.test.mjs
 ```
 
 ### Unit Test Structure
 
 The unit tests are organized into the following files:
 
-1. **system-files.test.js**: Tests the system file filtering functionality that hides the index file from the UI
-2. **deleted-files.test.js**: Tests the detection of deleted files and path normalization
-3. **deletion-operations.test.js**: Tests the actual deletion and restoration operations
-4. **ui-components.test.js**: Tests the UI components for showing/hiding deleted files
-
-#### Testing Approach
-
-The unit tests focus on the core functionality of the logical deletion system:
-
-1. **Focused Component Tests**: Each test file focuses on a specific component of the logical deletion system
-2. **Isolated Tests**: Tests are isolated from external dependencies to ensure reliable results
-3. **Comprehensive Coverage**: Tests cover both normal operation and edge cases
-
-This approach ensures that the core functionality is thoroughly tested while avoiding complex setup requirements.
+#### ES Module Tests (.mjs)
+1. **utils.test.mjs**: Tests utility functions for path handling and URL construction
+2. **file-operations.test.mjs**: Tests file upload functionality and path construction
+   - Focuses on the fix for preserving filename case
+   - Tests proper path construction with slashes
+   - Verifies handling of paths with and without trailing slashes
+3. **storage.test.mjs**: Tests Chrome storage operations for settings and folders
+4. **deletion-manager.test.mjs**: Tests the logical deletion system using a JSON index
+5. **file-operations-import.test.mjs**: Additional tests for file operations module
 
 ### Running Specific Tests
 

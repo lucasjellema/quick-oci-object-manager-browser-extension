@@ -4,7 +4,7 @@
 import { initializeUI } from './modules/ui.js';
 import { log } from './modules/utils.js';
 import { loadDeletedFilesIndex } from './modules/deletion-manager.js';
-import { getParUrl } from './modules/storage.js';
+import { getParUrl } from './modules/storage.mjs';
 
 // Initialize the application when the DOM is loaded
 document.addEventListener('DOMContentLoaded', async function() {
