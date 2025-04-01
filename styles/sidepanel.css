@@ -450,3 +450,57 @@ button:disabled {
   gap: 10px;
   margin-top: 15px;
 }
+
+/* Styles for deleted files */
+.browser-item.deleted-file {
+  opacity: 0.7;
+  text-decoration: line-through;
+  background-color: var(--oracle-light-gray);
+  border-left: 3px solid var(--oracle-red);
+}
+
+.deleted-mode-active #toggleDeletedButton {
+  background-color: var(--oracle-red-dark);
+  color: var(--oracle-white);
+}
+
+.deleted-file-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.restore-file {
+  background-color: transparent;
+  color: var(--oracle-red);
+  border: none;
+  padding: 2px 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.restore-file:hover {
+  color: var(--oracle-red-dark);
+}
+
+.delete-file {
+  background-color: transparent;
+  color: var(--oracle-red);
+  border: none;
+  padding: 2px 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.delete-file:hover {
+  color: var(--oracle-red-dark);
+}
+
+/* Active state for toggle button */
+#toggleDeletedButton.active {
+  background-color: var(--oracle-red);
+  color: var(--oracle-white);
+}
+
+#toggleDeletedButton.active:hover {
+  background-color: var(--oracle-red-dark);
+}

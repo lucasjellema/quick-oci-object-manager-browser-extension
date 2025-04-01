@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const currentPathElement = document.getElementById('currentPath');
   const refreshButton = document.getElementById('refreshButton');
   const createFolderButton = document.getElementById('createFolderButton');
+  const toggleDeletedButton = document.getElementById('toggleDeletedButton');
   const browserMessage = document.getElementById('browserMessage');
   const loadingIndicator = document.getElementById('loadingIndicator');
   
@@ -66,6 +67,8 @@ document.addEventListener('DOMContentLoaded', function() {
   let currentPath = '/';
   let currentBucketContents = [];
   let allFolders = new Set(['/']);
+  let showingDeletedFiles = false;
+  let deletedFiles = [];
   
   // Initialize folder input
   if (folderInput) {
@@ -470,6 +473,12 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Function to load bucket contents
   function loadBucketContents(path) {
+    // Force hide loading indicator before doing anything else
+    if (loadingIndicator) {
+      loadingIndicator.classList.add('hidden');
+      loadingIndicator.style.display = 'none';
+    }
+    
     chrome.storage.sync.get(['parUrl'], function(result) {
       if (!result.parUrl) {
         // Hide loading indicator if it's visible
@@ -498,107 +507,111 @@ document.addEventListener('DOMContentLoaded', function() {
         fileListElement.innerHTML = `<div class="browser-item error-item">Loading timeout. Please try again.</div>`;
       }, 5000); // 5 seconds timeout
       
-      // Prepare the URL for listing objects
-      let listUrl = result.parUrl;
-      
-      // If path is not root, append it to the URL
-      if (path !== '/') {
-        // Remove leading slash for OCI paths
-        const ociPath = path //.startsWith('/') ? path.substring(1) : path;
-        if (listUrl.includes('?')) {
-          const urlParts = listUrl.split('?');
-          listUrl = `${urlParts[0]}?prefix=${encodeURIComponent(ociPath)}&${urlParts[1].split('&').slice(1).join('&')}`;
-        } else {
-          listUrl = `${listUrl}?prefix=${encodeURIComponent(ociPath)}`;
+      // Load the deleted files list first
+      loadDeletedFilesList().then(() => {
+        // Prepare the URL for listing objects
+        let listUrl = result.parUrl;
+        
+        // If path is not root, append it to the URL
+        if (path !== '/') {
+          // Remove leading slash for OCI paths
+          const ociPath = path //.startsWith('/') ? path.substring(1) : path;
+          if (listUrl.includes('?')) {
+            const urlParts = listUrl.split('?');
+            listUrl = `${urlParts[0]}?prefix=${encodeURIComponent(ociPath)}&${urlParts[1].split('&').slice(1).join('&')}`;
+          } else {
+            listUrl = `${listUrl}?prefix=${encodeURIComponent(ociPath)}`;
+          }
         }
-      }
-      
-      console.log('Fetching bucket contents from:', listUrl);
-      
-      // Make the request to list objects
-      fetch(listUrl)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('Bucket contents received:', data);
-          // Log the structure of the first object to understand its properties
-          if (data.objects && data.objects.length > 0) {
-            console.log('First object structure:', JSON.stringify(data.objects[0], null, 2));
-          }
-          
-          // Update current path
-          currentPath = path;
-          
-          // For display purposes, show path without leading slash (except for root)
-          const displayPath = path === '/' ? '' : 
-                            (path.startsWith('/') ? path.substring(1) : path);
-          // Remove trailing slash if present
-          const cleanDisplayPath = displayPath.endsWith('/') ? displayPath.slice(0, -1) : displayPath;
-          currentPathElement.textContent = cleanDisplayPath;
-          
-          // Update folder input value
-          if (folderInput) {
-            // For display purposes, show path without leading slash (except for root)
-            const displayInputPath = path === '/' ? '' : 
-                                   (path.startsWith('/') ? path.substring(1) : path);
-            // Remove trailing slash if present
-            const cleanInputPath = displayInputPath.endsWith('/') ? displayInputPath.slice(0, -1) : displayInputPath;
-            folderInput.value = cleanInputPath;
+        
+        console.log('Fetching bucket contents from:', listUrl);
+        
+        // Make the request to list objects
+        fetch(listUrl)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Bucket contents received:', data);
+            // Log the structure of the first object to understand its properties
+            if (data.objects && data.objects.length > 0) {
+              console.log('First object structure:', JSON.stringify(data.objects[0], null, 2));
+            }
             
-            // Update the current folder in storage for context menu uploads
-            updateCurrentFolder(cleanInputPath);
-          }
-          
-          // Store the bucket contents
-          currentBucketContents = data;
-          
-          // Render the file list
-          renderFileList(data, path);
-          
-          // Hide loading indicator
-          if (loadingIndicator) {
-            loadingIndicator.classList.add('hidden');
-            loadingIndicator.style.display = 'none';
-          }
-          clearTimeout(loadingTimeout);
-        })
-        .catch(error => {
-          console.error('Error loading bucket contents:', error);
-          showStatus('Error loading bucket contents: ' + error.message, 'error');
-          
-          // Hide loading indicator
-          if (loadingIndicator) {
-            loadingIndicator.classList.add('hidden');
-            loadingIndicator.style.display = 'none';
-          }
-          clearTimeout(loadingTimeout);
-          
-          // Show an empty file list with error message
-          fileListElement.innerHTML = `<div class="browser-item error-item">Error: ${error.message}</div>`;
-        })
-        .finally(() => {
-          // Ensure loading indicator is hidden in all cases
-          if (loadingIndicator) {
-            loadingIndicator.classList.add('hidden');
-            loadingIndicator.style.display = 'none';
-          }
-          clearTimeout(loadingTimeout);
-        });
+            // Update current path (internal path)
+            currentPath = path;
+            
+            // For display purposes, show path without leading slash (except for root)
+            const displayPath = path === '/' ? '' : 
+                              (path.startsWith('/') ? path.substring(1) : path);
+            // Remove trailing slash if present
+            const cleanDisplayPath = displayPath.endsWith('/') ? displayPath.slice(0, -1) : displayPath;
+            currentPathElement.textContent = cleanDisplayPath;
+            
+            // Update folder input value
+            if (folderInput) {
+              // For display purposes, show path without leading slash (except for root)
+              const displayInputPath = path === '/' ? '' : 
+                                     (path.startsWith('/') ? path.substring(1) : path);
+              // Remove trailing slash if present
+              const cleanInputPath = displayInputPath.endsWith('/') ? displayInputPath.slice(0, -1) : displayInputPath;
+              folderInput.value = cleanInputPath;
+              
+              // Update the current folder in storage for context menu uploads
+              updateCurrentFolder(cleanInputPath);
+            }
+            
+            // Store the bucket contents
+            currentBucketContents = data.objects || [];
+            
+            // Extract folders from the bucket contents
+            extractFolders(data);
+            
+            // Display the bucket contents
+            displayBucketContents(data, path);
+            
+            // Clear the loading timeout
+            clearTimeout(loadingTimeout);
+            
+            // Hide loading indicator
+            if (loadingIndicator) {
+              loadingIndicator.classList.add('hidden');
+              loadingIndicator.style.display = 'none';
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching bucket contents:', error);
+            
+            // Clear the loading timeout
+            clearTimeout(loadingTimeout);
+            
+            // Hide loading indicator
+            if (loadingIndicator) {
+              loadingIndicator.classList.add('hidden');
+              loadingIndicator.style.display = 'none';
+            }
+            
+            // Show error message
+            fileListElement.innerHTML = `<div class="browser-item error-item">Error fetching bucket contents: ${error.message}</div>`;
+          });
+      });
     });
   }
   
-  // Function to render the file list
-  function renderFileList(data, currentPath) {
+  // Function to display bucket contents
+  function displayBucketContents(data, path) {
+    console.log("Display bucket contents called with showingDeletedFiles =", showingDeletedFiles);
+    console.log("Current deleted files list:", deletedFiles);
+    
     // Clear the file list
     fileListElement.innerHTML = '';
     
     // Add parent directory item if not at root
-    if (currentPath !== '/') {
-      const parentPath = getParentPath(currentPath);
+    if (path !== '/') {
+      const parentPath = getParentPath(path);
       const parentItem = document.createElement('div');
       parentItem.className = 'browser-item';
       parentItem.innerHTML = `
@@ -614,8 +627,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Create a map to track folders
     const folders = new Map();
     
-    // Process all objects to identify folders
+    // Create a list of files to display
+    const filesToDisplay = [];
+    
+    // Process all objects to identify folders and files
     if (data.objects && data.objects.length > 0) {
+      // First, create a map of deleted files for faster lookup
+      const deletedFilesMap = new Map();
+      if (deletedFiles && deletedFiles.length > 0) {
+        deletedFiles.forEach(file => {
+          if (file.name && file.name.startsWith('.deleted/')) {
+            const actualPath = file.name.substring('.deleted/'.length);
+            deletedFilesMap.set(actualPath, true);
+            console.log(`Added to deleted files map: ${actualPath}`);
+          }
+        });
+      }
+      console.log(`Created deleted files map with ${deletedFilesMap.size} entries`);
+      
       data.objects.forEach(object => {
         // Get the name from the object
         const name = object.name || '';
@@ -625,12 +654,28 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
         
+        // Skip the .deleted directory and its contents
+        if (name.startsWith('.deleted/')) {
+          console.log('Skipping .deleted/ file:', name);
+          return;
+        }
+        
+        // Check if this file is in the deleted files map
+        const isDeleted = deletedFilesMap.has(name);
+        console.log(`File ${name} deleted status:`, isDeleted);
+        
+        // Skip deleted files unless we're showing them
+        if (isDeleted && !showingDeletedFiles) {
+          console.log('Hiding deleted file:', name);
+          return;
+        }
+        
         // Remove leading slash if present
         const fullPath = name.startsWith('/') ? name.substring(1) : name;
         
         // Skip if this is not in the current path
-        if (currentPath !== '/') {
-          const prefix = currentPath === '/' ? '' : currentPath.substring(1); // Remove leading slash
+        if (path !== '/') {
+          const prefix = path === '/' ? '' : path.substring(1); // Remove leading slash
           if (!fullPath.startsWith(prefix)) {
             return;
           }
@@ -638,8 +683,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Get the relative path from current directory
         let relativePath = fullPath;
-        if (currentPath !== '/') {
-          const prefix = currentPath.substring(1);
+        if (path !== '/') {
+          const prefix = path.substring(1);
           if (fullPath.startsWith(prefix)) {
             relativePath = fullPath.substring(prefix.length);
             // Remove leading slash if present
@@ -666,32 +711,12 @@ document.addEventListener('DOMContentLoaded', function() {
           folders.set(folderName, true);
         } else {
           // This is a file in the current directory
-          // Add file to the list
-          const fileName = relativePath;
-          
-          const fileItem = document.createElement('div');
-          fileItem.className = 'browser-item';
-          fileItem.innerHTML = `
-            <div class="icon file-icon"><i class="fas fa-file"></i></div>
-            <div class="item-name">${fileName}</div>
-            <div class="item-actions">
-              <button class="download-file" title="Download File"><i class="fas fa-download"></i></button>
-            </div>
-          `;
-          
-          // Add download file functionality
-          const downloadButton = fileItem.querySelector('.download-file');
-          downloadButton.addEventListener('click', function(e) {
-            e.stopPropagation();
-            downloadFile(fullPath);
+          // Add file to the list of files to display
+          filesToDisplay.push({
+            fullPath: fullPath,
+            fileName: relativePath,
+            isDeleted: isDeleted
           });
-          
-          // Make the entire file item clickable for download
-          fileItem.addEventListener('click', function() {
-            downloadFile(fullPath);
-          });
-          
-          fileListElement.appendChild(fileItem);
         }
       });
     }
@@ -699,9 +724,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add folders to the list
     if (folders.size > 0) {
       folders.forEach((value, folderName) => {
-        const folderPath = currentPath === '/' ? 
+        const folderPath = path === '/' ? 
           '/' + folderName : 
-          currentPath + '/' + folderName;
+          path + '/' + folderName;
         
         // Remove any trailing slash from the display name
         const displayName = folderName.endsWith('/') ? folderName.slice(0, -1) : folderName;
@@ -722,6 +747,60 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
+    // Add files to the list
+    filesToDisplay.forEach(file => {
+      const fileItem = document.createElement('div');
+      fileItem.className = file.isDeleted ? 'browser-item deleted-file' : 'browser-item';
+      
+      // Different actions based on whether the file is deleted or not
+      if (file.isDeleted) {
+        fileItem.innerHTML = `
+          <div class="icon file-icon"><i class="fas fa-file"></i></div>
+          <div class="item-name">${file.fileName}</div>
+          <div class="deleted-file-actions">
+            <button class="restore-file" title="Restore File"><i class="fas fa-trash-restore"></i></button>
+          </div>
+        `;
+        
+        // Add restore file functionality
+        const restoreButton = fileItem.querySelector('.restore-file');
+        restoreButton.addEventListener('click', function(e) {
+          e.stopPropagation();
+          restoreFile(file.fullPath);
+        });
+      } else {
+        fileItem.innerHTML = `
+          <div class="icon file-icon"><i class="fas fa-file"></i></div>
+          <div class="item-name">${file.fileName}</div>
+          <div class="item-actions">
+            <button class="download-file" title="Download File"><i class="fas fa-download"></i></button>
+            <button class="delete-file" title="Delete File"><i class="fas fa-trash"></i></button>
+          </div>
+        `;
+        
+        // Add download file functionality
+        const downloadButton = fileItem.querySelector('.download-file');
+        downloadButton.addEventListener('click', function(e) {
+          e.stopPropagation();
+          downloadFile(file.fullPath);
+        });
+        
+        // Add delete file functionality
+        const deleteButton = fileItem.querySelector('.delete-file');
+        deleteButton.addEventListener('click', function(e) {
+          e.stopPropagation();
+          deleteFile(file.fullPath);
+        });
+        
+        // Make the entire file item clickable for download
+        fileItem.addEventListener('click', function() {
+          downloadFile(file.fullPath);
+        });
+      }
+      
+      fileListElement.appendChild(fileItem);
+    });
+    
     // Show empty message if no content
     if (fileListElement.children.length === 0) {
       fileListElement.innerHTML = '<div class="browser-item">No files or folders found</div>';
@@ -732,7 +811,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function downloadFile(fileName) {
     chrome.storage.sync.get(['parUrl'], function(result) {
       if (!result.parUrl) {
-        showStatus('Please set a valid PAR URL in extension options', 'error');
+        showStatus('PAR URL not configured', 'error');
         return;
       }
       
@@ -749,18 +828,15 @@ document.addEventListener('DOMContentLoaded', function() {
       
       console.log('Downloading file from URL:', downloadUrl);
       
-      // Create a temporary link element to trigger the download
+      // Create a temporary link and click it to download the file
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = getFileNameFromPath(fileName); // Set the download attribute to the file name
-      link.target = '_blank'; // Open in a new tab if download doesn't start automatically
-      
-      // Append the link to the document, click it, and remove it
+      link.download = fileName.split('/').pop(); // Extract the filename from the path
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
-      showStatus(`Downloading ${getFileNameFromPath(fileName)}...`, 'success');
+      showStatus(`Downloading file: ${fileName.split('/').pop()}`, 'success');
     });
   }
   
@@ -768,7 +844,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function createFolder(folderName) {
     chrome.storage.sync.get(['parUrl'], function(result) {
       if (!result.parUrl) {
-        showStatus('Please set a valid PAR URL in extension options', 'error');
+        showStatus('PAR URL not configured', 'error');
         return;
       }
       
@@ -1015,4 +1091,252 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
+  
+  // Function to load deleted files list
+  function loadDeletedFilesList() {
+    return new Promise((resolve, reject) => {
+      chrome.storage.sync.get(['parUrl'], function(result) {
+        if (!result.parUrl) {
+          deletedFiles = []; // Initialize as empty array if no PAR URL
+          console.log('No PAR URL configured, setting deletedFiles to empty array');
+          resolve();
+          return;
+        }
+        
+        // Prepare the URL for listing deleted objects
+        let listUrl = result.parUrl;
+        
+        // If URL already has query parameters, handle that
+        if (listUrl.includes('?')) {
+          const urlParts = listUrl.split('?');
+          listUrl = `${urlParts[0]}?prefix=.deleted/&${urlParts[1].split('&').slice(1).join('&')}`;
+        } else {
+          listUrl = `${listUrl}?prefix=.deleted/`;
+        }
+        
+        console.log('Fetching deleted files list from:', listUrl);
+        
+        // Make the request to list objects
+        fetch(listUrl)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Deleted files list received:', data);
+            
+            // Store the deleted files list
+            if (data.objects && Array.isArray(data.objects)) {
+              deletedFiles = data.objects.filter(obj => obj.name && obj.name.startsWith('.deleted/'));
+              console.log('Filtered deleted files:', deletedFiles);
+              console.log('Number of deleted files found:', deletedFiles.length);
+              
+              // Log each deleted file for debugging
+              deletedFiles.forEach((file, index) => {
+                console.log(`Deleted file ${index + 1}:`, file.name);
+              });
+            } else {
+              console.log('No deleted files found or invalid response format');
+              deletedFiles = [];
+            }
+            
+            resolve();
+          })
+          .catch(error => {
+            console.error('Error loading deleted files list:', error);
+            deletedFiles = []; // Initialize as empty array on error
+            resolve(); // Still resolve to continue loading
+          });
+      });
+    });
+  }
+  
+  // Function to check if a file is in the deleted files list
+  function isFileDeleted(filename) {
+    if (!deletedFiles || deletedFiles.length === 0) {
+      console.log('No deleted files in list, returning false for:', filename);
+      return false;
+    }
+    
+    // Normalize the filename (remove any leading slash)
+    const normalizedFilename = filename.startsWith('/') ? filename.substring(1) : filename;
+    
+    // Log for debugging
+    console.log('Checking if file is deleted:', normalizedFilename);
+    console.log('Deleted files count:', deletedFiles.length);
+    
+    for (const file of deletedFiles) {
+      // Extract the actual filename from the .deleted/ path
+      const deletedPath = file.name;
+      if (!deletedPath || !deletedPath.startsWith('.deleted/')) {
+        continue;
+      }
+      
+      const deletedFilename = deletedPath.substring('.deleted/'.length);
+      const normalizedDeletedFilename = deletedFilename.startsWith('/') ? 
+                                       deletedFilename.substring(1) : deletedFilename;
+      
+      console.log(`Comparing: "${normalizedFilename}" with "${normalizedDeletedFilename}"`);
+      
+      if (normalizedFilename === normalizedDeletedFilename) {
+        console.log('MATCH FOUND! File is deleted:', normalizedFilename);
+        return true;
+      }
+    }
+    
+    console.log('No match found, file is not deleted:', normalizedFilename);
+    return false;
+  }
+  
+  // Function to delete a file (logical deletion)
+  function deleteFile(filename) {
+    if (confirm(`Are you sure you want to delete "${filename}"?`)) {
+      chrome.storage.sync.get(['parUrl'], function(result) {
+        if (!result.parUrl) {
+          showStatus('PAR URL not configured', 'error');
+          return;
+        }
+        
+        // Create a marker file in the .deleted/ directory
+        const deletedFilename = `.deleted/${filename}`;
+        
+        console.log('Creating deletion marker for:', filename);
+        console.log('Marker file path:', deletedFilename);
+        
+        // Prepare the URL for uploading the marker file
+        let uploadUrl = result.parUrl;
+        
+        // If URL already has query parameters, handle that
+        if (uploadUrl.includes('?')) {
+          const urlParts = uploadUrl.split('?');
+          uploadUrl = `${urlParts[0]}/${encodeURIComponent(deletedFilename)}?${urlParts[1]}`;
+        } else {
+          uploadUrl = `${uploadUrl}/${encodeURIComponent(deletedFilename)}`;
+        }
+        
+        console.log('Creating deletion marker at URL:', uploadUrl);
+        
+        // Create an empty file as a marker
+        const emptyBlob = new Blob([''], { type: 'text/plain' });
+        
+        // Upload the marker file
+        fetch(uploadUrl, {
+          method: 'PUT',
+          body: emptyBlob
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          console.log('Deletion marker created successfully');
+          showStatus(`File "${filename}" deleted successfully`, 'success');
+          
+          // Update the deleted files list
+          deletedFiles.push({ name: deletedFilename });
+          
+          // Force reload the deleted files list to ensure it's up to date
+          loadDeletedFilesList().then(() => {
+            // Reload the current directory to reflect the changes
+            loadBucketContents(currentPath);
+          });
+        })
+        .catch(error => {
+          console.error('Error deleting file:', error);
+          showStatus(`Error deleting file: ${error.message}`, 'error');
+        });
+      });
+    }
+  }
+  
+  // Function to restore a deleted file
+  function restoreFile(filename) {
+    chrome.storage.sync.get(['parUrl'], function(result) {
+      if (!result.parUrl) {
+        showStatus('PAR URL not configured', 'error');
+        return;
+      }
+      
+      // Find the deletion marker for this file
+      const deletedFilename = `.deleted/${filename}`;
+      
+      console.log('Restoring file:', filename);
+      console.log('Deleting marker file:', deletedFilename);
+      
+      // Prepare the URL for deleting the marker file
+      let deleteUrl = result.parUrl;
+      
+      // If URL already has query parameters, handle that
+      if (deleteUrl.includes('?')) {
+        const urlParts = deleteUrl.split('?');
+        deleteUrl = `${urlParts[0]}/${encodeURIComponent(deletedFilename)}?${urlParts[1]}`;
+      } else {
+        deleteUrl = `${deleteUrl}/${encodeURIComponent(deletedFilename)}`;
+      }
+      
+      console.log('Deleting marker file at URL:', deleteUrl);
+      
+      // Delete the marker file
+      fetch(deleteUrl, {
+        method: 'DELETE'
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        console.log('Marker file deleted successfully');
+        showStatus(`File "${filename}" restored successfully`, 'success');
+        
+        // Update the deleted files list
+        deletedFiles = deletedFiles.filter(file => file.name !== deletedFilename);
+        
+        // Force reload the deleted files list to ensure it's up to date
+        loadDeletedFilesList().then(() => {
+          // Reload the current directory to reflect the changes
+          loadBucketContents(currentPath);
+        });
+      })
+      .catch(error => {
+        console.error('Error restoring file:', error);
+        showStatus(`Error restoring file: ${error.message}`, 'error');
+      });
+    });
+  }
+  
+  // Toggle deleted files button click handler
+  if (toggleDeletedButton) {
+    toggleDeletedButton.addEventListener('click', function() {
+      // Toggle the state
+      showingDeletedFiles = !showingDeletedFiles;
+      
+      console.log('Toggled showing deleted files:', showingDeletedFiles);
+      
+      // Update UI to show toggle state
+      if (showingDeletedFiles) {
+        document.body.classList.add('deleted-mode-active');
+        toggleDeletedButton.classList.add('active');
+        toggleDeletedButton.title = 'Hide Deleted Files';
+      } else {
+        document.body.classList.remove('deleted-mode-active');
+        toggleDeletedButton.classList.remove('active');
+        toggleDeletedButton.title = 'Show Deleted Files';
+      }
+      
+      // Force reload the deleted files list to ensure it's up to date
+      loadDeletedFilesList().then(() => {
+        // Then reload the current directory with the new setting
+        loadBucketContents(currentPath);
+        
+        // Show status message
+        if (showingDeletedFiles) {
+          showStatus('Showing deleted files', 'success');
+        } else {
+          showStatus('Hiding deleted files', 'success');
+        }
+      });
+    });
+  }
 });

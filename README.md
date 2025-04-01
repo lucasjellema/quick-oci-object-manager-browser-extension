@@ -9,6 +9,7 @@ A Chrome browser extension that allows users to browse, upload, and download fil
 - Upload files to root or specific folders
 - Download files directly from the browser interface
 - Folder creation and management
+- Logical file deletion with recycle bin functionality
 - Support for uploading multiple files simultaneously
 - Context menu integration for uploading images and files from web pages
 - Oracle-themed red color scheme for a professional appearance
@@ -23,8 +24,32 @@ A Chrome browser extension that allows users to browse, upload, and download fil
 3. Files can be uploaded to the root or any folder in the bucket
 4. Files can be downloaded by clicking on them in the browser
 5. New folders can be created and managed within the interface
-6. Images and files from web pages can be uploaded directly via context menu
-7. Upload progress and success notifications are displayed in real-time
+6. Files can be "deleted" without physically removing them from the bucket
+7. Images and files from web pages can be uploaded directly via context menu
+8. Upload progress and success notifications are displayed in real-time
+
+### Logical Deletion Feature
+
+The extension implements a "recycle bin" approach to file deletion:
+
+1. **How It Works**
+   - Files are never physically deleted from your OCI bucket
+   - Instead, a central index file (`logically-deleted-files.json`) tracks which files are marked as deleted
+   - This provides a safety net against accidental deletions
+
+2. **User Interface**
+   - Files can be deleted by clicking the trash icon next to them
+   - A toggle button in the toolbar lets you show/hide deleted files
+   - When viewing deleted files, they appear with strikethrough and reduced opacity
+   - Deleted files can be restored by clicking the restore button
+
+3. **Technical Implementation**
+   - The extension maintains a JSON index file in your bucket that lists all deleted files
+   - This index is loaded when the extension starts and updated when files are deleted or restored
+   - The file browser filters out deleted files unless you explicitly choose to view them
+   - All operations are performed via the PAR URL, maintaining security
+
+This approach gives you the benefits of a recycle bin without requiring special permissions or server-side changes to your OCI Object Storage.
 
 For a detailed visualization of the extension's architecture and component interactions, see the [Architecture Document](architecture.md).
 
@@ -108,6 +133,53 @@ A Pre-Authenticated Request (PAR) is a way to provide temporary access to object
   - `sidepanel.css` - Styles for the side panel
   - `options.css` - Styles for the options page
 - `images/` - Directory for extension icons and images
+
+## Testing
+
+The extension includes a comprehensive testing suite with both unit tests and end-to-end tests:
+
+### Unit Tests
+
+Unit tests focus on individual components and functions, particularly the logical deletion system:
+
+```bash
+# Navigate to the tests directory
+cd tests
+
+# Run all unit tests
+npm run test:unit
+
+# Run specific unit test files
+npx jest unit-tests/system-files.test.js
+npx jest unit-tests/deleted-files.test.js
+```
+
+### End-to-End Tests
+
+End-to-end tests use Playwright to test the extension in a real browser environment:
+
+```bash
+# Navigate to the tests directory
+cd tests
+
+# Run all end-to-end tests
+npm run test
+
+# Start the mock server for manual testing
+npm run mock-server
+```
+
+### Running All Tests
+
+To run both unit tests and end-to-end tests:
+
+```bash
+# Navigate to the tests directory
+cd tests
+
+# Run all tests
+npm run test:all
+```
 
 ## Development
 
