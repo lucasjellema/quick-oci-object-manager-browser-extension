@@ -7,5 +7,5 @@ export default {
   transform: {},
   transformIgnorePatterns: [],
   testTimeout: 5000,
-  setupFilesAfterEnv: ['./jest.setup.new.js']
+  setupFilesAfterEnv: ['./jest.setup.js']
 };
