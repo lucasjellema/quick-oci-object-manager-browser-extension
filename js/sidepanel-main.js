@@ -1,9 +1,9 @@
 /**
  * Main entry point for Quick OCI Object Manager sidepanel
  */
-import { initializeUI } from './modules/ui.js';
-import { log } from './modules/utils.js';
-import { loadDeletedFilesIndex } from './modules/deletion-manager.js';
+import { initializeUI } from './modules/ui.mjs';
+import { log } from './modules/utils.mjs';
+import { loadDeletedFilesIndex } from './modules/deletion-manager.mjs';
 import { getParUrl } from './modules/storage.mjs';
 
 // Initialize the application when the DOM is loaded

@@ -2,10 +2,10 @@
  * UI Module for Quick OCI Object Manager
  * Handles UI elements, rendering, and event listeners
  */
-import { log, showStatus, normalizePathForDisplay, getFilenameFromPath } from './utils.js';
-import { getParUrl, getCurrentFolder, getAllFolders, addFolder } from './storage.js';
-import { loadBucketContents, uploadFiles, downloadFile, createFolder, processBucketContents } from './file-operations.js';
-import { deleteFile, restoreFile, toggleDeletedFilesVisibility, isShowingDeletedFiles, loadDeletedFilesIndex } from './deletion-manager.js';
+import { log, showStatus, normalizePathForDisplay } from './utils.mjs';
+import { getCurrentFolder, getAllFolders, addFolder } from './storage.mjs';
+import { loadBucketContents, uploadFiles, downloadFile, createFolder, processBucketContents } from './file-operations.mjs';
+import { toggleDeletedFilesVisibility } from './deletion-manager.mjs';
 
 // DOM element references
 let fileUploadInput;
